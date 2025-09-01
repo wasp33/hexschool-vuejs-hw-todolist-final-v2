@@ -5,9 +5,9 @@
       <h1><a href="#">ONLINE TODO LIST</a></h1>
       <ul>
         <li class="todo_sm">
-          <a href="#"><span>王小明的代辦</span></a>
+          <a href="#"><span>{{ user.nickname }}的代辦</span></a>
         </li>
-        <li><a href="#loginPage">登出</a></li>
+        <li><a @click="signOut" href="#login">登出</a></li>
       </ul>
     </nav>
     <div class="conatiner todoListPage vhContainer">
@@ -53,6 +53,61 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import TodoItem from '@/components/TodoItem.vue'
+import axios from 'axios'
+import { useRouter } from 'vue-router'
+import { inject } from 'vue';
+const swal = inject('$swal');
+const router = useRouter()
+const apiUrl = 'https://todolist-api.hexschool.io'
+
+const user = ref({})
+//validate token function
+onMounted(async () => {
+  const token = document.cookie.replace(/(?:(?:^|.*;\s*)customTodoToken\s*\=\s*([^;]*).*$)|^.*$/, "$1");
+  if (!token) {
+    // alert('請先登入')
+    swal('請先登入', 'To continue', 'info');
+    router.push('/login')
+    return
+  }
+  console.log('Token:', token)
+  // Optionally, you can add further token validation logic here
+  try {
+    const response = await axios.get(`${apiUrl}/users/checkout`, {
+      headers: {
+        Authorization: token
+      }
+    });
+    console.log('Token is valid', response)
+    user.value = response.data
+    console.log('User data:', user.value)
+  } catch (error) {
+    // alert('Token is invalid, please log in again', error)
+    swal('您未曾登入此網站', '請登入系統', error);
+    router.push('/login')
+  }
+}
+)
+
+//sign out function
+const signOut = () => {
+  try {
+    const response = axios.post(`${apiUrl}/users/sign_out`, {}, {
+      headers: {
+        Authorization: document.cookie.replace(/(?:(?:^|.*;\s*)customTodoToken\s*\=\s*([^;]*).*$)|^.*$/, "$1")
+      }
+    });
+    console.log('signOut', response)
+    // alert('已登出');
+    swal('已登出', `Bye~~ ${user.value.nickname}`, 'success');
+
+    router.push('/login')
+  }
+  catch (error) {
+    alert('Error Sign Out: ', error)
+    router.push('/login')
+  }
+}
 
 // Add reactive state for active tab
 const activeTab = ref('all') // 'all', 'pending', or 'completed'

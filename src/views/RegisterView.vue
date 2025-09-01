@@ -3,70 +3,92 @@
   <div id="signUpPage" class="bg-yellow">
     <div class="conatiner signUpPage vhContainer">
       <div class="side">
-        <a href="#"
-          ><img
-            class="logoImg"
+        <a href="#"><img class="logoImg"
             src="https://raw.githubusercontent.com/hexschool/2022-web-layout-training/main/todolist/logo.png"
-            alt=""
-        /></a>
-        <img
-          class="d-m-n"
+            alt="" /></a>
+        <img class="d-m-n"
           src="https://raw.githubusercontent.com/hexschool/2022-web-layout-training/main/todolist/img.png"
-          alt="workImg"
-        />
+          alt="workImg" />
       </div>
       <div>
         <form class="formControls" action="index.html">
           <h2 class="formControls_txt">註冊帳號</h2>
           <label class="formControls_label" for="email">Email</label>
-          <input
-            class="formControls_input"
-            type="text"
-            id="email"
-            name="email"
-            placeholder="請輸入 email"
-            required
-          />
+          <input class="formControls_input" type="text" id="email" v-model="form.email" name="email"
+            placeholder="請輸入 email" required />
           <label class="formControls_label" for="name">您的暱稱</label>
-          <input
-            class="formControls_input"
-            type="text"
-            name="name"
-            id="name"
-            placeholder="請輸入您的暱稱"
-          />
+          <input class="formControls_input" type="text" name="name" id="name" v-model="form.nickname"
+            placeholder="請輸入您的暱稱" />
           <label class="formControls_label" for="pwd">密碼</label>
-          <input
-            class="formControls_input"
-            type="password"
-            name="pwd"
-            id="pwd"
-            placeholder="請輸入密碼"
-            required
-          />
+          <input class="formControls_input" type="password" name="pwd" id="pwd" v-model="form.password"
+            placeholder="請輸入密碼" required />
           <label class="formControls_label" for="pwd">再次輸入密碼</label>
-          <input
-            class="formControls_input"
-            type="password"
-            name="pwd"
-            id="pwd"
-            placeholder="請再次輸入密碼"
-            required
-          />
-          <input
-            class="formControls_btnSubmit"
-            type="button"
-            onclick="javascript:location.href='#todoListPage'"
-            value="註冊帳號"
-          />
-          <a class="formControls_btnLink" href="#loginPage">登入</a>
+          <input class="formControls_input" type="password" name="confirmPwd" id="confirmPwd"
+            v-model="form.confirmPassword" placeholder="請再次輸入密碼" required />
+          <span v-if="passwordError" class="formControls_error">{{ passwordError }}</span>
+          <input class="formControls_btnSubmit" type="button" @click="validateAndSignUp" value="註冊帳號" />
+          <a class="formControls_btnLink" href="#login">登入</a>
         </form>
       </div>
     </div>
   </div>
 </template>
+<script setup>
+import axios from 'axios'
+import { ref } from 'vue'
+import { toast } from 'vue3-toastify';
+
+const apiUrl = 'https://todolist-api.hexschool.io'
+const form = ref({
+  email: '',
+  nickname: '',
+  password: '',
+  confirmPassword: ''
+})
+
+const passwordError = ref('')
+
+const validateAndSignUp = async () => {
+  if (form.value.password !== form.value.confirmPassword) {
+    passwordError.value = '密碼不一致，請重新輸入'
+    toast.error('密碼不一致，請重新輸入', {
+      autoClose: 2000, // Override global autoClose for this specific toast
+    });
+    return
+  }
+  passwordError.value = ''
+  try {
+    const response = await axios.post(`${apiUrl}/users/sign_up`, {
+      email: form.value.email,
+      nickname: form.value.nickname,
+      password: form.value.password
+    })
+    console.log('signUp', response)
+    document.cookie = `customTodoToken=${response.data.token}`;
+    setTimeout(() => {
+      window.location.href = '#/'
+    }, 1000);
+  } catch (error) {
+    toast.error(error.response.data.message, {
+      autoClose: 2000, // Override global autoClose for this specific toast
+    });
+  }
+}
+
+//  const showToast = () => {
+//       toast.success('This is a success toast!', {
+//         autoClose: 2000, // Override global autoClose for this specific toast
+//       });
+// You can also use:
+// toast.info('Info message');
+// toast.error('Error message');
+// toast.warning('Warning message');
+// toast('Default message');
+// };
+</script>
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC&display=swap');
+
 html,
 body,
 div,

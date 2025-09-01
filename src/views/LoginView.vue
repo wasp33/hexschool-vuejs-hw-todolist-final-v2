@@ -3,55 +3,69 @@
   <div id="loginPage" class="bg-yellow">
     <div class="conatiner loginPage vhContainer">
       <div class="side">
-        <a href="#"
-          ><img
-            class="logoImg"
+        <a href="#"><img class="logoImg"
             src="https://raw.githubusercontent.com/hexschool/2022-web-layout-training/main/todolist/logo.png"
-            alt=""
-        /></a>
-        <img
-          class="d-m-n"
+            alt="" /></a>
+        <img class="d-m-n"
           src="https://raw.githubusercontent.com/hexschool/2022-web-layout-training/main/todolist/img.png"
-          alt="workImg"
-        />
+          alt="workImg" />
       </div>
       <div>
-        <form class="formControls" action="index.html">
+        <form class="formControls">
           <h2 class="formControls_txt">最實用的線上代辦事項服務</h2>
           <label class="formControls_label" for="email">Email</label>
-          <input
-            class="formControls_input"
-            type="text"
-            id="email"
-            name="email"
-            placeholder="請輸入 email"
-            required
-          />
+          <input class="formControls_input" type="text" id="email" v-model="form.email" name="email"
+            placeholder="請輸入 email" required />
           <span>此欄位不可留空</span>
           <label class="formControls_label" for="pwd">密碼</label>
-          <input
-            class="formControls_input"
-            type="password"
-            name="pwd"
-            id="pwd"
-            placeholder="請輸入密碼"
-            required
-          />
-          <input
-            class="formControls_btnSubmit"
-            type="button"
-            onclick="javascript:location.href='#todoListPage'"
-            value="登入"
-          />
-          <a class="formControls_btnLink" href="#signUpPage">註冊帳號</a>
+          <input class="formControls_input" type="password" name="pwd" id="pwd" v-model="form.password"
+            placeholder="請輸入密碼" required />
+          <input class="formControls_btnSubmit" type="button" @click="signIn()" value="登入" />
+          <a class="formControls_btnLink" href="#register">註冊帳號</a>
         </form>
       </div>
     </div>
   </div>
 </template>
-<script setup></script>
+<script setup>
+import axios from 'axios'
+import { ref } from 'vue'
+import { toast } from 'vue3-toastify';
+import { inject } from 'vue';
+const swal = inject('$swal');
+const apiUrl = 'https://todolist-api.hexschool.io'
+
+
+const form = ref({
+  email: '',
+  password: ''
+})
+
+const user = ref({
+  email: '',
+  nickname: '',
+  password: '',
+  token: ''
+})
+
+const signIn = async () => {
+  try {
+    const response = await axios.post(`${apiUrl}/users/sign_in`, form.value)
+    console.log('signIn', response)
+    document.cookie = `customTodoToken=${response.data.token}`;
+    user.value = response.data;
+    swal('登入成功', `歡迎回來 ${user.value.nickname}`, 'success');
+    window.location.href = '#/'
+  } catch (error) {
+    toast.error(error.response.data.message, {
+      autoClose: 2000, // Override global autoClose for this specific toast
+    });
+  }
+}
+</script>
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC&display=swap');
+
 html,
 body,
 div,
@@ -461,5 +475,6 @@ nav ul a span {
     justify-content: start;
   }
 }
+
 /*# sourceMappingURL=all.css.map */
 </style>
