@@ -7,7 +7,7 @@ import tailwindcss from '@tailwindcss/vite'
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: '/hexschool-vuejs-hw-todolist-final/',
+  base: '/hexschool-vuejs-hw-todolist-final-v2/',
   plugins: [vue(), vueDevTools(), tailwindcss()],
   resolve: {
     alias: {
