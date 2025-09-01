@@ -16,7 +16,7 @@
           <label class="formControls_label" for="email">Email</label>
           <input class="formControls_input" type="text" id="email" v-model="form.email" name="email"
             placeholder="請輸入 email" required />
-          <span>此欄位不可留空</span>
+          <span v-if="!form.email">此欄位不可留空</span>
           <label class="formControls_label" for="pwd">密碼</label>
           <input class="formControls_input" type="password" name="pwd" id="pwd" v-model="form.password"
             placeholder="請輸入密碼" required />
