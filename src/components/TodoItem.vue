@@ -3,7 +3,7 @@
     <li>
       <label class="todoList_label">
         <input class="todoList_input" type="checkbox" :checked="completed" @change="finishFromList" />
-        <span :class="{ 'completed-text': completed }">{{ name }}</span>
+        <span :class="{ 'completed-text': completed }">{{ content }}</span>
       </label>
       <span @click.stop="removeTodo" class="remove-button">X</span>
     </li>
@@ -11,11 +11,10 @@
 </template>
 
 <script setup>
-import { defineProps, defineEmits } from 'vue';
 
-const { id, name, completed } = defineProps({
-  id: Number,
-  name: String,
+const { id, content, completed } = defineProps({
+  id: String,
+  content: String,
   completed: {
     type: Boolean,
     default: false
@@ -25,7 +24,8 @@ const { id, name, completed } = defineProps({
 const emit = defineEmits(['emitFinishFromList', 'emitRemoveItem']);
 
 const finishFromList = () => {
-  emit('emitFinishFromList', { id, name, completed });
+  console.log('finishFromList id:', id);
+  emit('emitFinishFromList', { id, content, completed: !completed });
 };
 
 const removeTodo = () => {

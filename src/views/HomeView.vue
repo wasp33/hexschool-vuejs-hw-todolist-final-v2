@@ -34,7 +34,7 @@
           </ul>
           <div class="todoList_items">
             <ul class="todoList_item" v-for="todoitem in filteredTodos" :key="todoitem.id">
-              <TodoItem :id="todoitem.id" :name="todoitem.name" :completed="todoitem.completed"
+              <TodoItem :id="todoitem.id" :content="todoitem.content" :completed="todoitem.status"
                 @emitFinishFromList="finishFromList" @emitRemoveItem="removeItem" />
             </ul>
             <div class="todoList_statistics">
@@ -59,37 +59,52 @@ import { inject } from 'vue';
 const swal = inject('$swal');
 const router = useRouter()
 const apiUrl = 'https://todolist-api.hexschool.io'
-
+const todolist = ref([])
 const user = ref({})
+const token = ref()
 //validate token function
 onMounted(async () => {
-  const token = document.cookie.replace(/(?:(?:^|.*;\s*)customTodoToken\s*\=\s*([^;]*).*$)|^.*$/, "$1");
-  if (!token) {
+  token.value = document.cookie.replace(/(?:(?:^|.*;\s*)customTodoToken\s*\=\s*([^;]*).*$)|^.*$/, "$1");
+  if (!token.value) {
     // alert('請先登入')
     swal('請先登入', 'To continue', 'info');
     router.push('/login')
     return
   }
-  console.log('Token:', token)
+  console.log('Token:', token.value)
   // Optionally, you can add further token validation logic here
   try {
     const response = await axios.get(`${apiUrl}/users/checkout`, {
       headers: {
-        Authorization: token
+        Authorization: token.value
       }
     });
     console.log('Token is valid', response)
     user.value = response.data
     console.log('User data:', user.value)
+    getTodoList()
+
   } catch (error) {
     // alert('Token is invalid, please log in again', error)
     swal('您未曾登入此網站', '請登入系統', error);
     router.push('/login')
   }
-}
-)
+})
 
-//sign out function
+//get todo list function
+const getTodoList = async () => {
+  try {
+    const response = await axios.get(`${apiUrl}/todos`, {
+      headers: {
+        Authorization: token.value
+      }
+    });
+    console.log('User todos:', response)
+    todolist.value = response.data.data
+  } catch (error) {
+    alert('Error fetching todos:', error)
+  }
+}
 const signOut = () => {
   try {
     const response = axios.post(`${apiUrl}/users/sign_out`, {}, {
@@ -120,68 +135,103 @@ function setActiveTab(tab) {
 const addTodo = () => {
   alert(`Add todo: ${newTodo.value}`)
   // console.log("Add todo: ", newTodo.value)
-  todolist.value.push({
-    id: todolist.value.length + 1,
-    name: newTodo.value,
-    completed: false,
+  if (newTodo.value.trim() === '') {
+    alert('請輸入待辦事項')
+    return
+  }
+  axios.post(`${apiUrl}/todos`, {
+    "content": newTodo.value
+  }, {
+    headers: {
+      Authorization: token.value
+    }
+  }).then((response) => {
+    console.log('Add todo response:', response)
+    getTodoList()
+  }).catch((error) => {
+    alert('Error adding todo:', error)
   })
   newTodo.value = ''
 }
 
 const finishFromList = (todoItem) => {
-  const removeItem = todolist.value.find((todo) => todo.id === todoItem.id)
-  if (removeItem) removeItem.completed = !todoItem.completed
+  console.log('Finish from list id:', todoItem.id)
+  // const removeItem = todolist.value.find((todo) => todo.id === todoItem.id)
+  // if (removeItem) removeItem.completed = !todoItem.completed
+  axios.patch(`${apiUrl}/todos/${todoItem.id}/toggle`, {
+    "status": !todoItem.completed
+  }, {
+    headers: {
+      Authorization: token.value
+    }
+  }).then((response) => {
+    console.log('Toggle todo response:', response)
+    getTodoList()
+  }).catch((error) => {
+    alert('Error toggling todo:', error)
+  })
 }
 const removeItem = (id) => {
+  console.log('Remove item with id:', id)
+  axios.delete(`${apiUrl}/todos/${id}`, {
+    headers: {
+      Authorization: token.value
+    }
+  }).then((response) => {
+    console.log('Delete todo response:', response)
+    getTodoList()
+  }).catch((error) => {
+    alert('Error deleting todo:', error)
+  })
   todolist.value = todolist.value.filter(todo => todo.id !== id);
 }
 
-const todolist = ref([
-  {
-    id: 1,
-    name: '把冰箱發霉的檸檬拿去丟',
-    completed: true,
-  },
-  {
-    id: 2,
-    name: '打電話叫媽媽匯款給我',
-    completed: false,
-  },
-  {
-    id: 3,
-    name: '整理電腦資料夾',
-    completed: false,
-  },
-  {
-    id: 4,
-    name: '繳電費水費瓦斯費',
-    completed: false,
-  },
-  {
-    id: 5,
-    name: '約vicky禮拜三泡溫泉',
-    completed: false,
-  },
-  {
-    id: 6,
-    name: '約ada禮拜四吃晚餐',
-    completed: false,
-  },
-])
+// const todolist = ref([
+// {
+//   id: 1,
+//     name: '把冰箱發霉的檸檬拿去丟',
+//       completed: true,
+//   },
+// {
+//   id: 2,
+//     name: '打電話叫媽媽匯款給我',
+//       completed: false,
+//   },
+// {
+//   id: 3,
+//     name: '整理電腦資料夾',
+//       completed: false,
+//   },
+// {
+//   id: 4,
+//     name: '繳電費水費瓦斯費',
+//       completed: false,
+//   },
+// {
+//   id: 5,
+//     name: '約vicky禮拜三泡溫泉',
+//       completed: false,
+//   },
+// {
+//   id: 6,
+//     name: '約ada禮拜四吃晚餐',
+//       completed: false,
+//   },
+// ])
 
 // Filter todos based on active tab
 const filteredTodos = computed(() => {
   if (activeTab.value === 'all') return todolist.value
   if (activeTab.value === 'pending')
-    return todolist.value.filter((todo) => todo.completed === false)
+    return todolist.value.filter((todo) => todo.status === false)
   if (activeTab.value === 'completed')
-    return todolist.value.filter((todo) => todo.completed === true)
+    return todolist.value.filter((todo) => todo.status === true)
   return todolist.value
 })
 
 // Count completed items
 const completedCount = computed(() => {
-  return todolist.value.filter((todo) => todo.completed === true).length
+  return todolist.value.filter((todo) => todo.status === true).length
 })
 
 onMounted(() => {

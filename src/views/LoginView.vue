@@ -21,7 +21,8 @@
           <input class="formControls_input" type="password" name="pwd" id="pwd" v-model="form.password"
             placeholder="請輸入密碼" required />
           <input class="formControls_btnSubmit" type="button" @click="signIn()" value="登入" />
-          <a class="formControls_btnLink" href="#register">註冊帳號</a>
+          <a href="#register"></a>
+          <RouterLink class="formControls_btnLink" to="/register">註冊帳號</RouterLink>
         </form>
       </div>
     </div>
@@ -32,6 +33,7 @@ import axios from 'axios'
 import { ref } from 'vue'
 import { toast } from 'vue3-toastify';
 import { inject } from 'vue';
+import router from '@/router';
 const swal = inject('$swal');
 const apiUrl = 'https://todolist-api.hexschool.io'
 
@@ -52,10 +54,12 @@ const signIn = async () => {
   try {
     const response = await axios.post(`${apiUrl}/users/sign_in`, form.value)
     console.log('signIn', response)
-    document.cookie = `customTodoToken=${response.data.token}`;
+    //儲存cookie
+    const { token, expired } = response.data;
+    document.cookie = `customTodoToken=${token}; expires=${new Date(expired * 1000).toUTCString()}`;
     user.value = response.data;
     swal('登入成功', `歡迎回來 ${user.value.nickname}`, 'success');
-    window.location.href = '#/'
+    router.push('/');
   } catch (error) {
     toast.error(error.response.data.message, {
       autoClose: 2000, // Override global autoClose for this specific toast
