@@ -34,11 +34,13 @@
   </div>
 </template>
 <script setup>
-import axios from 'axios'
+//import axios from 'axios'
+import { register } from '@/utils/api'
+
 import { ref } from 'vue'
 import { toast } from 'vue3-toastify';
 
-const apiUrl = 'https://todolist-api.hexschool.io'
+//const apiUrl = 'https://todolist-api.hexschool.io'
 const form = ref({
   email: '',
   nickname: '',
@@ -58,12 +60,13 @@ const validateAndSignUp = async () => {
   }
   passwordError.value = ''
   try {
-    const response = await axios.post(`${apiUrl}/users/sign_up`, {
-      email: form.value.email,
-      nickname: form.value.nickname,
-      password: form.value.password
-    })
-    console.log('signUp', response)
+    // const response = await axios.post(`${apiUrl}/users/sign_up`, {
+    //   email: form.value.email,
+    //   nickname: form.value.nickname,
+    //   password: form.value.password
+    // })
+    await register(form.value.email, form.value.nickname, form.value.password)
+    console.log('signUp', '註冊成功')
     document.cookie = `customTodoToken=${response.data.token}`;
     setTimeout(() => {
       window.location.href = '#/'

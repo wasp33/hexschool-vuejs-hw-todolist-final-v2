@@ -18,7 +18,7 @@ api.interceptors.request.use((config) => {
   return config
 })
 
-export const register = async (ElementInternals, password, nickname) => {
+export const register = async (ElementInternals, nickname, password) => {
   return await api.post('/users/sign_up', {
     email: ElementInternals,
     password,
